@@ -9,10 +9,6 @@ vector<std::pair<int, int>> get_min_edge_cover(Graph& graph) {
     auto result = std::move(matching);
     for (auto i = 0; i < covered_vertices.size(); ++i) {
         if (!covered_vertices[i]) {
-            if (graph.edges[i].empty()) {
-                std::cout << "No Edge Cover\n";
-                exit(1);
-            }
             covered_vertices[i] = covered_vertices[graph.edges[i][0]] = true;
             result.push_back({i, graph.edges[i][0]});
         }

@@ -1,8 +1,14 @@
 #include "gtest/gtest.h"
 
 #include "min_dominating_set.h"
+#include <random>
+#include <ctime>
 
-TEST(MATCHING_TEST, TEST1) {
+//////////////////////////////////////////////////////////
+//////////////////  UNIT TESTS ///////////////////////////
+//////////////////////////////////////////////////////////
+
+TEST(matching, TEST1) {
     //  0 --- 1 --- 2 --- 3 --- 4 --- 5
     //                          |     |
     //                          8     6
@@ -51,7 +57,6 @@ TEST(set_cover_2, TEST1) {
         ASSERT_TRUE(i);
     }
 }
-
 
 TEST(set_cover, TEST1) {
     std::map<char, int> m = {{'a', 0}, {'b', 1}, {'c', 2}, {'d', 3}};
@@ -149,7 +154,7 @@ TEST(dominating_set, TEST2) {
     //    4---5
     auto V = 7;
     auto E = 8;
-    vector<vector<int>> t =  {{0, 1}, {0, 2}, {0, 3}, {2, 3}, {2, 4}, {3, 4}, {3, 6}, {4, 5}};
+    vector<vector<int>> t = {{0, 1}, {0, 2}, {0, 3}, {2, 3}, {2, 4}, {3, 4}, {3, 6}, {4, 5}};
     Graph graph(V);
 
     for (auto i = 0; i < E; ++i) {
@@ -181,7 +186,7 @@ TEST(dominating_set, TEST3) {
     //    4
     auto V = 5;
     auto E = 5;
-    vector<vector<int>> t =  {{0, 1}, {0, 2}, {0, 3}, {2, 3}, {2, 4}};
+    vector<vector<int>> t = {{0, 1}, {0, 2}, {0, 3}, {2, 3}, {2, 4}};
     Graph graph(V);
 
     for (auto i = 0; i < E; ++i) {
@@ -202,6 +207,94 @@ TEST(dominating_set, TEST3) {
     }
     for (auto i : used) {
         ASSERT_TRUE(i);
+    }
+}
+
+//////////////////////////////////////////////////////////
+//////////////////  STRESS TESTS /////////////////////////
+//////////////////////////////////////////////////////////
+
+TEST(stress, TEST_CLIQUE) {
+    for (auto i = 5; i < 120; ++i) {
+        Graph g(i);
+        for (auto j = 0; j < i; ++j) {
+            for (auto k = j + 1; k < i; ++k) {
+                g.add_edge(j, k);
+            }
+        }
+        auto res = std::move(get_mds(g));
+        vector<bool> used(i, false);
+        for (auto& t : res) {
+            used[t] = true;
+            for (auto j : g.edges[t]) {
+                used[j] = true;
+            }
+        }
+        for (auto j : used) {
+            ASSERT_TRUE(j);
+        }
+    }
+}
+
+TEST(stress, TEST_HALF) {
+    for (auto i = 5; i < 120; ++i) {
+        Graph g(i);
+        for (auto j = 0; j < i; ++j) {
+            for (auto k = j + 1; k < i; ++k) {
+                if (((j + k) % 2) == 0) {
+                    continue;
+                }
+                g.add_edge(j, k);
+            }
+        }
+        auto res = std::move(get_mds(g));
+        vector<bool> used(i, false);
+        for (auto& t : res) {
+            used[t] = true;
+            for (auto j : g.edges[t]) {
+                used[j] = true;
+            }
+        }
+        for (auto j : used) {
+            ASSERT_TRUE(j);
+        }
+    }
+}
+
+TEST(stress, TEST_DISCONNECTED) {
+    for (auto i = 5; i < 120; ++i) {
+        Graph g(i);
+        auto res = std::move(get_mds(g));
+        vector<bool> used(i, false);
+        for (auto& t : res) {
+            used[t] = true;
+            for (auto j : g.edges[t]) {
+                used[j] = true;
+            }
+        }
+        for (auto j : used) {
+            ASSERT_TRUE(j);
+        }
+    }
+}
+
+TEST(stress, TEST_ARTICULATION_POINT) {
+    for (auto i = 5; i < 120; ++i) {
+        Graph g(i);
+        for (auto j = 0; j < i; ++j) {
+            g.add_edge(j, 0);
+        }
+        auto res = std::move(get_mds(g));
+        vector<bool> used(i, false);
+        for (auto& t : res) {
+            used[t] = true;
+            for (auto j : g.edges[t]) {
+                used[j] = true;
+            }
+        }
+        for (auto j : used) {
+            ASSERT_TRUE(j);
+        }
     }
 }
 
