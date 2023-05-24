@@ -1,8 +1,8 @@
 #include "gtest/gtest.h"
 
-#include "min_dominating_set.h"
-#include <random>
 #include <ctime>
+#include <random>
+#include "min_dominating_set.h"
 
 //////////////////////////////////////////////////////////
 //////////////////  UNIT TESTS ///////////////////////////
@@ -215,10 +215,16 @@ TEST(dominating_set, TEST3) {
 //////////////////////////////////////////////////////////
 
 TEST(stress, TEST_CLIQUE) {
+    std::cout << "TEST_CLIQUE\n";
+
+    vector<vector<size_t>> metr;
     for (auto i = 5; i < 120; ++i) {
         Graph g(i);
         for (auto j = 0; j < i; ++j) {
-            for (auto k = j + 1; k < i; ++k) {
+            for (auto k = 0; k < i; ++k) {
+                if (j == k) {
+                    continue;
+                }
                 g.add_edge(j, k);
             }
         }
@@ -233,10 +239,26 @@ TEST(stress, TEST_CLIQUE) {
         for (auto j : used) {
             ASSERT_TRUE(j);
         }
+        //        metrics.print();
+        auto temp = metrics.get_metrics();
+        temp.push_back(i);
+        metr.push_back(std::move(temp));
+    }
+
+    for (auto& i : metr) {
+        std::cout << i[0] << " ";
+        std::cout << i[1] << " ";
+        std::cout << i[2] << " ";
+        std::cout << i[3] << " ";
+        std::cout << i[4] << "\n";
     }
 }
 
 TEST(stress, TEST_HALF) {
+    std::cout << "TEST_HALF\n";
+
+    vector<vector<size_t>> metr;
+
     for (auto i = 5; i < 120; ++i) {
         Graph g(i);
         for (auto j = 0; j < i; ++j) {
@@ -258,10 +280,26 @@ TEST(stress, TEST_HALF) {
         for (auto j : used) {
             ASSERT_TRUE(j);
         }
+
+        auto temp = metrics.get_metrics();
+        temp.push_back(i);
+        metr.push_back(std::move(temp));
+    }
+
+    for (auto& i : metr) {
+        std::cout << i[0] << " ";
+        std::cout << i[1] << " ";
+        std::cout << i[2] << " ";
+        std::cout << i[3] << " ";
+        std::cout << i[4] << "\n";
     }
 }
 
 TEST(stress, TEST_DISCONNECTED) {
+    std::cout << "TEST_DISCONNECTED\n";
+
+    vector<vector<size_t>> metr;
+
     for (auto i = 5; i < 120; ++i) {
         Graph g(i);
         auto res = std::move(get_mds(g));
@@ -275,14 +313,31 @@ TEST(stress, TEST_DISCONNECTED) {
         for (auto j : used) {
             ASSERT_TRUE(j);
         }
+
+        auto temp = metrics.get_metrics();
+        temp.push_back(i);
+        metr.push_back(std::move(temp));
+    }
+
+    for (auto& i : metr) {
+        std::cout << i[0] << " ";
+        std::cout << i[1] << " ";
+        std::cout << i[2] << " ";
+        std::cout << i[3] << " ";
+        std::cout << i[4] << "\n";
     }
 }
 
 TEST(stress, TEST_ARTICULATION_POINT) {
+    std::cout << "TEST_ARTICULATION_POINT\n";
+
+    vector<vector<size_t>> metr;
+
     for (auto i = 5; i < 120; ++i) {
         Graph g(i);
         for (auto j = 0; j < i; ++j) {
             g.add_edge(j, 0);
+            g.add_edge(0, j);
         }
         auto res = std::move(get_mds(g));
         vector<bool> used(i, false);
@@ -295,6 +350,63 @@ TEST(stress, TEST_ARTICULATION_POINT) {
         for (auto j : used) {
             ASSERT_TRUE(j);
         }
+
+        auto temp = metrics.get_metrics();
+        temp.push_back(i);
+        metr.push_back(std::move(temp));
+    }
+
+    for (auto& i : metr) {
+        std::cout << i[0] << " ";
+        std::cout << i[1] << " ";
+        std::cout << i[2] << " ";
+        std::cout << i[3] << " ";
+        std::cout << i[4] << "\n";
+    }
+}
+
+TEST(stress, TEST_RANDOM) {
+    std::cout << "TEST_RANDOM\n";
+
+    std::random_device dev;
+    std::mt19937 rng(dev());
+    std::uniform_int_distribution<std::mt19937::result_type> dist5(0, 5);
+
+    vector<vector<size_t>> metr;
+
+    for (auto i = 5; i < 45; ++i) {
+        Graph g(i);
+        for (auto j = 0; j < i; ++j) {
+            for (auto k = j + 1; k < i; ++k) {
+                if (dist5(rng) == 0) {
+                    g.add_edge(j, k);
+                    g.add_edge(k, j);
+                }
+            }
+        }
+        auto res = std::move(get_mds(g));
+        vector<bool> used(i, false);
+        for (auto& t : res) {
+            used[t] = true;
+            for (auto j : g.edges[t]) {
+                used[j] = true;
+            }
+        }
+        for (auto j : used) {
+            ASSERT_TRUE(j);
+        }
+
+        auto temp = metrics.get_metrics();
+        temp.push_back(i);
+        metr.push_back(std::move(temp));
+    }
+
+    for (auto& i : metr) {
+        std::cout << i[0] << " ";
+        std::cout << i[1] << " ";
+        std::cout << i[2] << " ";
+        std::cout << i[3] << " ";
+        std::cout << i[4] << "\n";
     }
 }
 

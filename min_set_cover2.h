@@ -38,6 +38,7 @@ std::set<vector<T>> get_min_set_cover_2(vset<T> sets, size_t elements_number) {
             unmap[counter++] = set.second[1];
         }
         graph.add_edge(map[set.second[0]], map[set.second[1]]);
+        graph.add_edge(map[set.second[1]], map[set.second[0]]);
     }
 
     auto edge_cover = std::move(get_min_edge_cover(graph));

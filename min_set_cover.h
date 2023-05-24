@@ -7,8 +7,37 @@
 #include <vector>
 #include "min_set_cover2.h"
 
+struct Metrics {
+    size_t del_count = 0;
+    size_t msc_count = 0;
+    size_t set_erase_count = 0;
+    size_t set_get_count = 0;
+
+    void clear() {
+        del_count = 0;
+        msc_count = 0;
+        set_erase_count = 0;
+        set_get_count = 0;
+    }
+
+    void print() const {
+        std::cout << "del_count : " << del_count << "\n";
+        std::cout << "msc_count : " << msc_count << "\n";
+        std::cout << "set_erase_count : " << set_erase_count << "\n";
+        std::cout << "set_get_count : " << set_get_count << "\n";
+    }
+
+    vector<size_t> get_metrics() {
+        return {del_count, msc_count, set_erase_count, set_get_count};
+    }
+};
+
+static Metrics metrics;
+
 template <typename T>
 std::pair<vset<T>, std::set<T>> del(vset<T> sets, vector<T> x, std::set<T> origin) {
+    ++metrics.del_count;
+
     std::set<T> x_set(x.begin(), x.end());
     vset<T> result(cmp<T>);
     for (auto& subset : sets) {
@@ -45,6 +74,8 @@ bool includes(Iterator first1, Iterator last1, Iterator first2, Iterator last2) 
 
 template <typename T>
 std::set<size_t> min_set_cover(vset<T> sets, std::set<T> origin) {
+    ++metrics.msc_count;
+
     if (sets.size() == 0) {
         return {};
     }
@@ -57,6 +88,8 @@ std::set<size_t> min_set_cover(vset<T> sets, std::set<T> origin) {
             auto& X = *it1;
             auto& Y = *it2;
             if (includes(X.second.begin(), X.second.end(), Y.second.begin(), Y.second.end())) {  // Y is a subset
+                ++metrics.set_erase_count;
+
                 sets.erase(*it2);
                 return std::move(min_set_cover(std::move(sets), std::move(origin)));
             }
@@ -84,6 +117,8 @@ std::set<size_t> min_set_cover(vset<T> sets, std::set<T> origin) {
 
         for (auto i = 0; i < origin.size(); ++i) {
             if (count[i] == 1) {
+                ++metrics.set_get_count;
+
                 auto iter = sets.begin();
                 std::advance(iter, set_num[i]);
                 auto X = *iter;
@@ -95,7 +130,7 @@ std::set<size_t> min_set_cover(vset<T> sets, std::set<T> origin) {
         }
     }
 
-    auto max_set = *sets.begin();
+    auto max_set = *(--sets.end());
     // if |max_set| = 2 then all sets are of cardinality 2,
     // because otherwise there sets of cardinality 1,
     // but this can't be because they are then either subsets of sets of cardinality 2
